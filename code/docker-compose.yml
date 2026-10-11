@@ -1,0 +1,51 @@
+name: zero-trust-tenant-isolation
+services:
+  api:
+    image: zero-trust-tenant-isolation-api:0.1.0
+    build:
+      context: ../..
+      dockerfile: 03-resource-tenant-isolation/code/Dockerfile
+      target: runtime
+    ports: ["127.0.0.1:${LEARNING_PORT:-8222}:8000"]
+    environment:
+      LEARNING_ENVIRONMENT: local
+      LEARNING_DEMO_CREDENTIALS_JSON: "${LEARNING_DEMO_CREDENTIALS_JSON:-}"
+      OPA_URL: http://opa:8181
+    depends_on: [opa]
+    read_only: true
+    tmpfs: ["/tmp:size=32m,mode=1777"]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 256m
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; [urllib.request.urlopen(url, timeout=2) for url in ['http://127.0.0.1:8000/health','http://opa:8181/health']]"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+  opa:
+    image: openpolicyagent/opa:1.21.1-static@sha256:4675ab04ad1627f74741d2d9c5142698c79e18b7b09f192587d31d6dba20838e
+    command: [run, --server, --addr=0.0.0.0:8181, --log-level=error, /policy]
+    volumes: ["../../02-opa-authorization/code/policy/rego:/policy:ro"]
+    user: "10001:10001"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 256m
+  checks:
+    image: zero-trust-tenant-isolation-checks:0.1.0
+    build:
+      context: ../..
+      dockerfile: 03-resource-tenant-isolation/code/Dockerfile
+      target: checks
+    profiles: [tools]
+    read_only: true
+    tmpfs: ["/tmp:size=128m,mode=1777"]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 512m
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: "${LEARNING_SUBNET:-10.218.43.0/24}"
