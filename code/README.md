@@ -1,6 +1,6 @@
-# PRD 03: Resource and Tenant Isolation
+# Resource and Tenant Isolation
 
-This folder implements **only PRD 03**, extending PRD 02's authorized services with a parameterized, tenant-aware SQLite repository. Earlier API and OPA code is reused through explicit image dependencies, not copied. Every numbered project retains its own Compose stack.
+This folder implements **only the resource and tenant isolation workshop**, extending the OPA authorization workshop's authorized services with a parameterized, tenant-aware SQLite repository. Earlier API and OPA code is reused through explicit image dependencies, not copied. Every numbered project retains its own Compose stack.
 
 ## Run and Verify
 
@@ -26,7 +26,7 @@ The service authorizes using authoritative metadata, then the repository checks 
 
 There are no instructor roles or cross-owner relationships. Same-tenant non-owner, cross-tenant, absent and deleted progress share a safe 404. The inherited demo credential identifies a fixture subject but cannot override current repository membership. Model output and raw tenant/user/role headers are not used to establish authority.
 
-`record_evidence` is a service/repository test boundary, **not a new HTTP tool**. The inherited OPA policy still denies `evidence.record`; no public write authorization is implemented here. Repository-level tests demonstrate atomic membership/owner checks using trusted test principals and prove foreign/revoked writes create no records. Idempotency and approved write tool semantics belong to later PRDs.
+`record_evidence` is a service/repository test boundary, **not a new HTTP tool**. The inherited OPA policy still denies `evidence.record`; no public write authorization is implemented here. Repository-level tests demonstrate atomic membership/owner checks using trusted test principals and prove foreign/revoked writes create no records. Idempotency and approved write tool semantics belong to later workshops.
 
 SQLite uses `:memory:` and resets on restart. Transactions demonstrate single-process state consistency, not distributed production persistence, multi-replica consistency or database row-level security. No extra database dependency is required. Existing API contracts remain unchanged.
 
